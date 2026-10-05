@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.5.1 (2026-10-05)
+
+- feat: add license attribute to dataset ([#70](https://github.com/datagouv/datagouv_client/pull/70))
+- refactor: rename repo ([#68](https://github.com/datagouv/datagouv_client/pull/68))
+
+
 ## 0.5.0 (2026-06-30)
 
 - feat: migrate cli to datagouv-cli ([#67](https://github.com/datagouv/datagouv_client/pull/67))
