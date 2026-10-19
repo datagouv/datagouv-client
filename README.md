@@ -201,6 +201,16 @@ dataset = client.create_dataset(
 )  # this creates a dataset with the values you specified, and instantiates a Dataset
 dataset.update({"tags": ["environment", "water"]})
 
+# add "private": True to create a draft dataset (public by default)
+draft = client.create_dataset(
+    {
+        "title": "New dataset",
+        "description": "A description is required",
+        "organization": "646b7187b50b2a93b1ae3d45",
+        "private": True,
+    },
+)
+
 # alternatively you can create a dataset from an organization, and it will be attached to it
 organization = client.organization("646b7187b50b2a93b1ae3d45")
 dataset = organization.create_dataset(
