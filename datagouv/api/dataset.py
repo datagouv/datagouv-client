@@ -36,6 +36,7 @@ class Dataset(BaseObject, ResourceCreator):
         "last_update",
         "metrics",
         "owner",
+        "private",
         "quality",
         "spatial",
         "tags",
