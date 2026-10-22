@@ -71,7 +71,7 @@ class Client:
         return Dataset(id, _client=self, **kwargs)
 
     def dataservice(self, id: str, **kwargs) -> "Dataservice":
-        """Load a published external API (platform object: dataservice)."""
+        """Load a published third-party API (platform object: dataservice)."""
         from datagouv.api.dataservice import Dataservice
 
         return Dataservice(id, _client=self, **kwargs)
@@ -82,7 +82,7 @@ class Client:
         return DatasetCreator(_client=self).create(payload=payload)
 
     def create_dataservice(self, payload: dict) -> "Dataservice":
-        """Create a published external API (platform object: dataservice)."""
+        """Create a published third-party API (platform object: dataservice)."""
         from datagouv.api.dataservice import DataserviceCreator
 
         return DataserviceCreator(_client=self).create(payload=payload)

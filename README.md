@@ -103,7 +103,7 @@ organization = Organization("646b7187b50b2a93b1ae3d45")  # you can find an organ
 for dat in organization.datasets:
     print(f"{dat.title} has {len(dat.resources)} resources")
 
-# External APIs published on the catalog (listed under [dataservices](https://www.data.gouv.fr/dataservices/) on the website)
+# Third-party APIs published on the catalog (listed under [dataservices](https://www.data.gouv.fr/dataservices/) on the website)
 # are represented in code by Dataservice
 api = Dataservice("673b0e6774a23d9eac2af8ce")  # you can find an API's id on its page on data.gouv.fr
 print(api.title)

@@ -1,8 +1,7 @@
-"""Catalog entries for external HTTP APIs published on data.gouv.fr.
+"""Catalog entries for third-party HTTP APIs published on data.gouv.fr.
 
 On the platform these objects are called *dataservices* (REST path ``/api/1/dataservices/``).
-In user-facing text they are often referred to as third-party or external *APIs*. They are
-not the data.gouv.fr REST API, nor the Tabular API.
+They are not the data.gouv.fr REST API, nor the Tabular API.
 """
 
 import logging
@@ -18,7 +17,7 @@ from datagouv.utils.retry import simple_connection_retry
 
 
 class Dataservice(BaseObject):
-    """A published external API on data.gouv.fr (platform model: dataservice)."""
+    """A published third-party API on data.gouv.fr (platform model: dataservice)."""
 
     _attributes = [
         "access_audiences",
