@@ -50,6 +50,7 @@ def test_client_types(args):
                 for prefix in ["create_", ""]
                 for obj in [
                     "dataset",
+                    "dataservice",
                     "organization",
                     "topic",
                 ]
