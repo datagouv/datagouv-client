@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Iterator
 import niquests
 
 if TYPE_CHECKING:
-    from datagouv import Dataset, Dataservice, Organization, Resource, Topic
+    from datagouv import Dataservice, Dataset, Organization, Resource, Topic
 
 PYTHON_USER_AGENT = {"User-Agent": f"datagouv-python/{version('datagouv_client')}"}
 

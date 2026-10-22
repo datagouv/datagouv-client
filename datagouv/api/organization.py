@@ -1,8 +1,8 @@
 import logging
 from typing import Iterator
 
-from datagouv.api.dataservice import Dataservice, DataserviceCreator
 from datagouv.api.client import Client
+from datagouv.api.dataservice import Dataservice, DataserviceCreator
 from datagouv.api.dataset import Dataset, DatasetCreator
 from datagouv.utils.base_object import BaseObject, Creator, assert_auth
 from datagouv.utils.retry import simple_connection_retry

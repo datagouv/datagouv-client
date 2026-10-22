@@ -71,9 +71,7 @@ def test_authentification_assertion():
 
     # same constraint when creating an API (dataservice) from an organization
     with pytest.raises(ValueError):
-        o_from_response.create_dataservice(
-            {"title": "Titre", "organization": ORGANIZATION_ID}
-        )
+        o_from_response.create_dataservice({"title": "Titre", "organization": ORGANIZATION_ID})
     with pytest.raises(ValueError):
         o_from_response.create_dataservice({"title": "Titre", "owner": OWNER_ID})
 

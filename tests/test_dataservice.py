@@ -11,8 +11,8 @@ from conftest import (
 )
 
 from datagouv.api.client import Client
-from datagouv.api.dataset import Dataset
 from datagouv.api.dataservice import Dataservice
+from datagouv.api.dataset import Dataset
 from datagouv.api.organization import Organization
 from datagouv.utils.base_object import BaseObject
 
@@ -89,9 +89,7 @@ def test_dataservice_create(niquests_mock):
         status_code=201,
     )
     client = Client(api_key="test-api-key")
-    created = client.create_dataservice(
-        {"title": "New API", "organization": ORGANIZATION_ID}
-    )
+    created = client.create_dataservice({"title": "New API", "organization": ORGANIZATION_ID})
     assert isinstance(created, Dataservice)
     for attr in Dataservice._attributes:
         assert getattr(created, attr) == dataservice_metadata[attr]
