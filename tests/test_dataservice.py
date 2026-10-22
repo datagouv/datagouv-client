@@ -5,7 +5,6 @@ from conftest import (
     DATAGOUV_URL,
     DATASERVICE_ID,
     ORGANIZATION_ID,
-    OWNER_ID,
     dataservice_metadata,
     dataset_metadata,
     organization_metadata,
@@ -139,14 +138,6 @@ def test_organization_create_dataservice(niquests_mock):
     org = Organization(ORGANIZATION_ID, _client=client, _from_response=organization_metadata)
     created = org.create_dataservice({"title": "New API"})
     assert isinstance(created, Dataservice)
-
-
-def test_organization_create_dataservice_org_override():
-    org = Organization(ORGANIZATION_ID, _from_response=organization_metadata)
-    with pytest.raises(ValueError):
-        org.create_dataservice({"title": "New API", "organization": ORGANIZATION_ID})
-    with pytest.raises(ValueError):
-        org.create_dataservice({"title": "New API", "owner": OWNER_ID})
 
 
 def test_client_dataservice_methods():

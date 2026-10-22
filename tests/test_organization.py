@@ -35,6 +35,7 @@ def test_organization_attributes_and_methods(organization_api_call):
             "front_url",
             "datasets",
             "create_dataset",
+            "create_dataservice",
         ]
         + Organization._attributes
         + [method for method in dir(BaseObject) if not method.startswith("__")]
@@ -57,6 +58,7 @@ def test_authentification_assertion():
         "update_extras",
         "delete_extras",
         "create_dataset",
+        "create_dataservice",
     ]:
         with pytest.raises(PermissionError):
             getattr(o_from_response, method)({})
@@ -66,6 +68,14 @@ def test_authentification_assertion():
         o_from_response.create_dataset({"title": "Titre", "organization": ORGANIZATION_ID})
     with pytest.raises(ValueError):
         o_from_response.create_dataset({"title": "Titre", "owner": OWNER_ID})
+
+    # same constraint when creating an API (dataservice) from an organization
+    with pytest.raises(ValueError):
+        o_from_response.create_dataservice(
+            {"title": "Titre", "organization": ORGANIZATION_ID}
+        )
+    with pytest.raises(ValueError):
+        o_from_response.create_dataservice({"title": "Titre", "owner": OWNER_ID})
 
 
 def test_datasets(niquests_mock):
