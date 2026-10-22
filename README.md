@@ -5,7 +5,7 @@
 [![CircleCI](https://circleci.com/gh/datagouv/datagouv_client.svg?style=svg)](https://circleci.com/gh/datagouv/datagouv_client)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Python wrapper for the data.gouv.fr API that allows you to interact easily with datasets and resources across all three platforms (`prod`/`www`, `demo`, and `dev`). Install it through [PyPI](https://pypi.org/project/datagouv-client/):
+A Python wrapper for the data.gouv.fr API that allows you to interact easily with datasets, resources, topics, and published APIs (dataservices) across all three platforms (`prod`/`www`, `demo`, and `dev`). Install it through [PyPI](https://pypi.org/project/datagouv-client/):
 ```bash
 pip install datagouv-client
 ```
@@ -18,7 +18,7 @@ pip install datagouv-client
 
 ### 📥 Quick Start
 ```python
-from datagouv import Dataset, Resource, Topic
+from datagouv import Dataset, Dataservice, Resource, Topic
 
 # Get a dataset and its resources
 dataset = Dataset("5d13a8b6634f41070a43dff3")
@@ -33,12 +33,17 @@ resource.download("my_file.csv")
 topic = Topic("68b6e6dbdac745f47d4ff6e0")
 elements = topic.elements
 datasets = topic.datasets
+
+# Get a published API (dataservice on the platform)
+api = Dataservice("673b0e6774a23d9eac2af8ce")
+print(f"API: {api.title}")
+print(f"Base URL: {api.base_api_url}")
 ```
 
 ### 📊 Getting existing objects
 If you only want to retrieve existing objects (aka you don't want to modify them on datagouv), here is what a workflow could look like:
 ```python
-from datagouv import Dataset, Resource, Organization
+from datagouv import Dataset, Dataservice, Resource, Organization
 
 dataset = Dataset("5d13a8b6634f41070a43dff3")  # you can find a dataset's id in the `Informations` tab of its landing page
 
@@ -97,17 +102,20 @@ organization = Organization("646b7187b50b2a93b1ae3d45")  # you can find an organ
 # you can loop through the organization's datasets, which are Dataset instances
 for dat in organization.datasets:
     print(f"{dat.title} has {len(dat.resources)} resources")
-```
 
-External APIs published on the catalog (listed under [dataservices](https://www.data.gouv.fr/dataservices/) on the website) are represented in code by `Dataservice`:
-```python
-from datagouv import Dataservice
-
-api = Dataservice("673b0e6774a23d9eac2af8ce")  # id from the API's page on data.gouv.fr
+# External APIs published on the catalog (listed under [dataservices](https://www.data.gouv.fr/dataservices/) on the website)
+# are represented in code by Dataservice
+api = Dataservice("673b0e6774a23d9eac2af8ce")  # you can find an API's id on its page on data.gouv.fr
 print(api.title)
-print(api.base_api_url)
-for dataset in api.associated_datasets:
-    print(dataset.title)
+print(api.description)
+print(api.base_api_url)  # the URL of the published API itself
+print(api.machine_documentation_url)  # OpenAPI/Swagger spec, if available
+print(api.organization_id)
+print(api)  # this displays all the attributes of the API as a dict
+
+# you can loop through the datasets associated with this API, which are Dataset instances
+for dat in api.associated_datasets:
+    print(dat.title)
 ```
 
 > **Note:** If you encounter errors during API calls, the client will raise appropriate exceptions (e.g., `PermissionError` for authentication issues, `niquests.RequestException` for API errors).
@@ -160,6 +168,15 @@ The metrics differ depending on the object:
     "monthly_visit_dataservice": 456
 }
 ```
+- for published APIs (dataservices):
+```json
+{
+    "__id": 249,
+    "dataservice_id": "673b0e6774a23d9eac2af8ce",
+    "metric_month": "2025-02",
+    "monthly_visit": 6305
+}
+```
 
 ### 🛠️ Interacting with objects online
 If you want to modify objects on the datagouv platforms, you will need to create an authenticated client:
@@ -174,7 +191,7 @@ client = Client(
 ```
 > **Note:** You can find your API key on https://www.data.gouv.fr/fr/admin/me/ (don't forget to change the prefix to get the key from the right environment).
 
-Once your client is set up, you can instantiate datasets and resources from it. Of course, **you will only be allowed to modify objects according to your rights** (so objects created by you or an organization you are part of):
+Once your client is set up, you can instantiate datasets, resources, and published APIs from it. Of course, **you will only be allowed to modify objects according to your rights** (so objects created by you or an organization you are part of):
 ```python
 dataset = client.dataset("5d13a8b6634f41070a43dff3")
 # this is also a Dataset instance, with all the same attributes as above, but since you're authenticated, you have access to new methods
@@ -199,9 +216,15 @@ for idx, res in enumerate(dataset.resources):
 # it is also possible to sort a dataset's resources
 # either with a specific Resource field and order, or with a custom sorting function that takes and returns a list of Resource objects
 dataset.sort_resources(by="title.asc")  # the expected syntax is <field>.<order> (order being 'asc' or 'desc')
+
+# published APIs (dataservices) work the same way
+api = client.dataservice("673b0e6774a23d9eac2af8ce")
+api.update({"title": "A brand new title"})
+print(api.title)  # -> "A brand new title"
+api.delete()  # delete the API, use with caution!
 ```
 
-With an authenticated client, you are also allowed to create datasets and resources on the environment you specified:
+With an authenticated client, you are also allowed to create datasets, resources, and published APIs on the environment you specified:
 ```python
 dataset = client.create_dataset(
     {
@@ -221,15 +244,23 @@ dataset = organization.create_dataset(
     }
 )
 
-# create an external API entry (dataservice on the platform)
+# create a published API (dataservice on the platform)
 api = client.create_dataservice(
     {
-        "title": "My API",
+        "title": "New API",
         "description": "A description is required",
-        "organization": "646b7187b50b2a93b1ae3d45",
+        "organization": "646b7187b50b2a93b1ae3d45",  # the organization that will own the API
+    },
+)  # this creates an API with the values you specified, and instantiates a Dataservice
+api.update({"tags": ["transport"]})
+
+# alternatively you can create an API from an organization, and it will be attached to it
+api = organization.create_dataservice(
+    {
+        "title": "New API",
+        "description": "A description is required",
     }
 )
-api = organization.create_dataservice({"title": "My API", "description": "..."})
 ```
 There are two types of resources on datagouv:
 - `static`: a file is uploaded directly on the platform
