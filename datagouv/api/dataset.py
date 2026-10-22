@@ -42,6 +42,7 @@ class Dataset(BaseObject, ResourceCreator):
         "temporal_coverage",
         "title",
         "extras",
+        "license",
     ]
 
     def __init__(
