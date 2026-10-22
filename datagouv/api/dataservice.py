@@ -1,3 +1,10 @@
+"""Catalog entries for external HTTP APIs published on data.gouv.fr.
+
+On the platform these objects are called *dataservices* (REST path ``/api/1/dataservices/``).
+In user-facing text they are often referred to as third-party or external *APIs*. They are
+not the data.gouv.fr REST API, nor the Tabular API.
+"""
+
 import logging
 import re
 from typing import Iterator, Optional
@@ -10,7 +17,9 @@ from datagouv.utils.base_object import BaseObject, Creator, assert_auth
 from datagouv.utils.retry import simple_connection_retry
 
 
-class API(BaseObject):
+class Dataservice(BaseObject):
+    """A published external API on data.gouv.fr (platform model: dataservice)."""
+
     _attributes = [
         "access_audiences",
         "access_type",
@@ -45,7 +54,7 @@ class API(BaseObject):
             self.refresh(_from_response=_from_response)
 
     def __call__(self, *args, **kwargs):
-        return API(*args, **kwargs)
+        return Dataservice(*args, **kwargs)
 
     # TODO: to avoid code duplication, _update_method could be a class-level attribute
     def update(self, payload: dict) -> niquests.Response:
@@ -76,9 +85,9 @@ class API(BaseObject):
         return response  # type: ignore - we cast as Dataset in the function
 
 
-class APICreator(Creator):
+class DataserviceCreator(Creator):
     @simple_connection_retry
-    def create(self, payload: dict) -> API:
+    def create(self, payload: dict) -> Dataservice:
         assert_auth(self._client)
         if self._client.verbose:
             logging.info(f"Creating third-party API '{payload['title']}'")
@@ -88,4 +97,4 @@ class APICreator(Creator):
         except Exception as e:
             raise Exception(r.text) from e
         metadata = r.json()
-        return API(metadata["id"], _client=self._client, _from_response=metadata)
+        return Dataservice(metadata["id"], _client=self._client, _from_response=metadata)

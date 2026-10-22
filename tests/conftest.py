@@ -13,7 +13,7 @@ ORGANIZATION_ID = "646b7187b50b2a93b1ae3d45"
 OWNER_ID = "637b5c6eef50bb3f5a97b24f"
 DATAGOUV_URL = "https://www.data.gouv.fr/"
 TOPIC_ID = "68b6e6dbdac745f47d4ff6e0"
-API_ID = "deadbeef1234567890abcdef"
+DATASERVICE_ID = "deadbeef1234567890abcdef"
 
 with open("tests/dataset_metadata.json", "r") as f:
     dataset_metadata = json.load(f)
@@ -33,8 +33,8 @@ with open("tests/organization_metadata.json", "r") as f:
 with open("tests/topic_metadata.json", "r") as f:
     topic_metadata = json.load(f)
 
-with open("tests/api_metadata.json", "r") as f:
-    api_metadata = json.load(f)
+with open("tests/dataservice_metadata.json", "r") as f:
+    dataservice_metadata = json.load(f)
 
 with open("tests/elements_metadata.json", "r") as f:
     elements_metadata = json.load(f)
@@ -113,8 +113,10 @@ def remote_resource_api2_call(niquests_mock):
 
 
 @pytest.fixture
-def api_api_call(niquests_mock):
-    niquests_mock.get(f"{DATAGOUV_URL}api/1/dataservices/{API_ID}/").respond(json=api_metadata)
+def dataservice_api_call(niquests_mock):
+    niquests_mock.get(f"{DATAGOUV_URL}api/1/dataservices/{DATASERVICE_ID}/").respond(
+        json=dataservice_metadata
+    )
     yield niquests_mock
 
 

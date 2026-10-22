@@ -1,7 +1,7 @@
 import logging
 from typing import Iterator
 
-from datagouv.api.api import API, APICreator
+from datagouv.api.dataservice import Dataservice, DataserviceCreator
 from datagouv.api.client import Client
 from datagouv.api.dataset import Dataset, DatasetCreator
 from datagouv.utils.base_object import BaseObject, Creator, assert_auth
@@ -68,7 +68,7 @@ class Organization(BaseObject):
             payload=payload | {"organization": self.id}
         )
 
-    def create_API(self, payload: dict) -> API:
+    def create_dataservice(self, payload: dict) -> Dataservice:
         # we don't simply heritate from DatasetCreator to have a different method name
         for key in ["organization", "owner"]:
             if payload.get(key):
@@ -76,7 +76,9 @@ class Organization(BaseObject):
                     f"It is not possible to specify the {key} when creating an API "
                     "from an organization, it will be attached to it."
                 )
-        return APICreator(_client=self._client).create(payload=payload | {"organization": self.id})
+        return DataserviceCreator(_client=self._client).create(
+            payload=payload | {"organization": self.id}
+        )
 
 
 class OrganizationCreator(Creator):

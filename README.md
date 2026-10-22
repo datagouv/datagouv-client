@@ -99,6 +99,17 @@ for dat in organization.datasets:
     print(f"{dat.title} has {len(dat.resources)} resources")
 ```
 
+External APIs published on the catalog (listed under [dataservices](https://www.data.gouv.fr/dataservices/) on the website) are represented in code by `Dataservice`:
+```python
+from datagouv import Dataservice
+
+api = Dataservice("673b0e6774a23d9eac2af8ce")  # id from the API's page on data.gouv.fr
+print(api.title)
+print(api.base_api_url)
+for dataset in api.associated_datasets:
+    print(dataset.title)
+```
+
 > **Note:** If you encounter errors during API calls, the client will raise appropriate exceptions (e.g., `PermissionError` for authentication issues, `niquests.RequestException` for API errors).
 
 > **Note:** If you want to get objects from demo or dev, you must use a client:
@@ -209,6 +220,16 @@ dataset = organization.create_dataset(
         "description": "A description is a required",
     }
 )
+
+# create an external API entry (dataservice on the platform)
+api = client.create_dataservice(
+    {
+        "title": "My API",
+        "description": "A description is required",
+        "organization": "646b7187b50b2a93b1ae3d45",
+    }
+)
+api = organization.create_dataservice({"title": "My API", "description": "..."})
 ```
 There are two types of resources on datagouv:
 - `static`: a file is uploaded directly on the platform

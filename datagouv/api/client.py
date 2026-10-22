@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Iterator
 import niquests
 
 if TYPE_CHECKING:
-    from datagouv import API, Dataset, Organization, Resource, Topic
+    from datagouv import Dataset, Dataservice, Organization, Resource, Topic
 
 PYTHON_USER_AGENT = {"User-Agent": f"datagouv-python/{version('datagouv_client')}"}
 
@@ -70,20 +70,22 @@ class Client:
 
         return Dataset(id, _client=self, **kwargs)
 
-    def api(self, id: str, **kwargs) -> "API":
-        from datagouv.api.api import API
+    def dataservice(self, id: str, **kwargs) -> "Dataservice":
+        """Load a published external API (platform object: dataservice)."""
+        from datagouv.api.dataservice import Dataservice
 
-        return API(id, _client=self, **kwargs)
+        return Dataservice(id, _client=self, **kwargs)
 
     def create_dataset(self, payload: dict) -> "Dataset":
         from datagouv.api.dataset import DatasetCreator
 
         return DatasetCreator(_client=self).create(payload=payload)
 
-    def create_API(self, payload: dict) -> "API":
-        from datagouv.api.api import APICreator
+    def create_dataservice(self, payload: dict) -> "Dataservice":
+        """Create a published external API (platform object: dataservice)."""
+        from datagouv.api.dataservice import DataserviceCreator
 
-        return APICreator(_client=self).create(payload=payload)
+        return DataserviceCreator(_client=self).create(payload=payload)
 
     def topic(self, id: str, **kwargs) -> "Topic":
         from datagouv.api.topic import Topic
