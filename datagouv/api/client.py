@@ -113,8 +113,8 @@ class Client:
         next_page: str = "next_page",
         mask: str | None = None,
         _ignore_base_url: bool = False,
-        cast_as: type["Dataset | Organization | Resource | Topic"] | None = None,
-    ) -> Iterator["Dataset | Organization | Resource | Topic | dict"]:
+        cast_as: type["Dataset | Dataservice | Organization | Resource | Topic"] | None = None,
+    ) -> Iterator["Dataset | Dataservice | Organization | Resource | Topic | dict"]:
         """⚠️ only for paginated endpoints"""
 
         def get_link_next_page(elem: dict, separated_keys: str) -> str | None:
@@ -128,8 +128,8 @@ class Client:
         def cast_elem(
             elem: dict,
             client: Client,
-            cast_as: type["Dataset | Organization | Resource | Topic"] | None,
-        ) -> "Dataset | Organization | Resource | Topic | dict":
+            cast_as: type["Dataset | Dataservice | Organization | Resource | Topic"] | None,
+        ) -> "Dataset | Dataservice | Organization | Resource | Topic | dict":
             return (
                 elem
                 if cast_as is None
