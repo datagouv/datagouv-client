@@ -86,7 +86,7 @@ def test_get_all(args):
         if idx > 3:
             break
         if mask:
-            assert list(sorted(fields)) == list(sorted(data.keys()))
+            assert sorted(fields) == sorted(data.keys())
         if cast_as:
             assert isinstance(data, cast_as)
         assert data["id"] if cast_as is None else data.id

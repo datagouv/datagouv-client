@@ -1,19 +1,23 @@
 import logging
-from typing import Iterator
+from collections.abc import Iterator
+from typing import ClassVar
 
 import niquests
 
-from datagouv.api.client import Client
+from datagouv.api.client import DEFAULT_CLIENT, Client
 from datagouv.api.dataset import Dataset
 from datagouv.utils.base_object import BaseObject, Creator, assert_auth
+from datagouv.utils.errors import DatagouvAPIError
 from datagouv.utils.retry import simple_connection_retry
+
+logger = logging.getLogger(__name__)
 
 
 class Topic(BaseObject):
     _elements: list | None = None
     _datasets: list | None = None
 
-    _attributes = [
+    _attributes: ClassVar[list[str]] = [
         "created_at",
         "description",
         "featured",
@@ -31,7 +35,7 @@ class Topic(BaseObject):
         self,
         id: str | None = None,
         fetch: bool = True,
-        _client: Client = Client(),
+        _client: Client = DEFAULT_CLIENT,
         _from_response: dict | None = None,
     ):
         BaseObject.__init__(self, id, _client)
@@ -94,11 +98,11 @@ class TopicCreator(Creator):
     def create(self, payload: dict) -> Topic:
         assert_auth(self._client)
         if self._client.verbose:
-            logging.info(f"Creating topic '{payload['name']}'")
+            logger.info(f"Creating topic '{payload['name']}'")
         r = self._client.session.post(f"{self._client.base_url}/api/2/topics/", json=payload)
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         metadata = r.json()
         return Topic(metadata["id"], _client=self._client, _from_response=metadata)

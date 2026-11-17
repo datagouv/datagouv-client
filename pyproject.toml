@@ -37,8 +37,6 @@ local_scheme = "no-local-version"
 pythonpath = ["."]
 
 [tool.ruff]
-lint = { select = ["E4", "E7", "E9", "F", "I"] } # ruff's historical defaults, plus ["I"] to also sort imports with an isort rule
-extend-exclude = ["*.md"]
 line-length = 100
 
 [project.scripts]

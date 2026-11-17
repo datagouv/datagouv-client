@@ -10,6 +10,7 @@ from datagouv.api.client import Client
 from datagouv.api.dataset import Dataset
 from datagouv.api.resource import Resource
 from datagouv.utils.base_object import BaseObject
+from datagouv.utils.errors import DatagouvAPIError
 
 
 def test_resource_instance(static_resource_api2_call):
@@ -159,7 +160,7 @@ def test_iter_download_http_behaviour(
     it = r._iter_download(chunk_size=chunk_size)
 
     if expect_exception:
-        with pytest.raises(Exception):
+        with pytest.raises(DatagouvAPIError):
             next(it)  # trigger request + raise_for_status
     else:
         out = b"".join(it)
@@ -294,8 +295,8 @@ def test_resource_update(static_resource_api2_call, niquests_mock):
     response = resource.update(payload)
 
     assert response.status_code == 200
-    for attr in payload.keys():
-        assert getattr(resource, attr) == payload[attr]
+    for attr, value in payload.items():
+        assert getattr(resource, attr) == value
 
 
 def test_resource_delete(static_resource_api2_call, niquests_mock):
@@ -333,7 +334,6 @@ def test_tabular_resource_instanciation(tabular_resource_api_calls, custom_objec
             "_columns",
         ]
     )
-    res.profile
     # the call has fetched all tabular API data
     assert isinstance(res.profile, dict)
     assert isinstance(res.columns, list)

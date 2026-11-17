@@ -1,7 +1,7 @@
 import json
 import re
+from collections.abc import Callable
 from copy import deepcopy
-from typing import Callable
 
 import pytest
 

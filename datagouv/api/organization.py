@@ -1,15 +1,19 @@
 import logging
-from typing import Iterator
+from collections.abc import Iterator
+from typing import ClassVar
 
-from datagouv.api.client import Client
+from datagouv.api.client import DEFAULT_CLIENT, Client
 from datagouv.api.dataset import Dataset, DatasetCreator
 from datagouv.utils.base_object import BaseObject, Creator, assert_auth
+from datagouv.utils.errors import DatagouvAPIError
 from datagouv.utils.retry import simple_connection_retry
+
+logger = logging.getLogger(__name__)
 
 
 class Organization(BaseObject):
     _datasets: list[Dataset] | None = None
-    _attributes = [
+    _attributes: ClassVar[list[str]] = [
         "badges",
         "business_number_id",
         "created_at",
@@ -27,7 +31,7 @@ class Organization(BaseObject):
         self,
         id: str,
         fetch: bool = True,
-        _client: Client = Client(),
+        _client: Client = DEFAULT_CLIENT,
         _from_response: dict | None = None,
     ):
         BaseObject.__init__(self, id, _client)
@@ -73,11 +77,11 @@ class OrganizationCreator(Creator):
     def create(self, payload: dict) -> Organization:
         assert_auth(self._client)
         if self._client.verbose:
-            logging.info(f"Creating organization '{payload['name']}'")
+            logger.info(f"Creating organization '{payload['name']}'")
         r = self._client.session.post(f"{self._client.base_url}/api/1/organizations/", json=payload)
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         metadata = r.json()
         return Organization(metadata["id"], _client=self._client, _from_response=metadata)

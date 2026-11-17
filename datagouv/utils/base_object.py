@@ -1,11 +1,15 @@
 import logging
 import re
-from typing import Iterator
+from collections.abc import Iterator
+from typing import ClassVar
 
 import niquests
 
-from datagouv.api.client import Client
+from datagouv.api.client import DEFAULT_CLIENT, Client
+from datagouv.utils.errors import DatagouvAPIError
 from datagouv.utils.retry import simple_connection_retry
+
+logger = logging.getLogger(__name__)
 
 
 def assert_auth(client: Client) -> None:
@@ -17,9 +21,9 @@ def assert_auth(client: Client) -> None:
 
 class BaseObject:
     uri: str
-    _attributes: list[str] = []
+    _attributes: ClassVar[list[str]] = []
 
-    def __init__(self, id: str, _client: Client = Client()):
+    def __init__(self, id: str, _client: Client = DEFAULT_CLIENT):
         if self.__class__.__name__ == "BaseObject":
             raise TypeError("BaseObject is an abstract class, it cannot be instanciated")
         self.id = id
@@ -43,7 +47,7 @@ class BaseObject:
             try:
                 r.raise_for_status()
             except Exception as e:
-                raise Exception(r.text) from e
+                raise DatagouvAPIError(r.text) from e
             metadata = r.json()
         for a in self._attributes:
             setattr(self, a, metadata.get(a))
@@ -53,12 +57,12 @@ class BaseObject:
     def update(self, payload: dict) -> niquests.Response:
         assert_auth(self._client)
         if self._client.verbose:
-            logging.info(f"🔁 Putting {self.uri} with {payload}")
+            logger.info(f"🔁 Putting {self.uri} with {payload}")
         r = self._client.session.put(self.uri, json=payload)
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         self.refresh(_from_response=r.json())
         return r
 
@@ -66,24 +70,24 @@ class BaseObject:
     def delete(self) -> niquests.Response:
         assert_auth(self._client)
         if self._client.verbose:
-            logging.info(f"🚮 Deleting {self.uri}")
+            logger.info(f"🚮 Deleting {self.uri}")
         r = self._client.session.delete(self.uri)
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         return r
 
     @simple_connection_retry
     def update_extras(self, payload: dict) -> niquests.Response:
         assert_auth(self._client)
         if self._client.verbose:
-            logging.info(f"🔁 Putting {self.uri} with extras {payload}")
+            logger.info(f"🔁 Putting {self.uri} with extras {payload}")
         r = self._client.session.put(self.uri.replace("api/1", "api/2") + "extras/", json=payload)
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         self.refresh()
         return r
 
@@ -92,12 +96,12 @@ class BaseObject:
         """Convenience method"""
         assert_auth(self._client)
         if self._client.verbose:
-            logging.info(f"🚮 Deleting extras {keys} for {self.uri}")
+            logger.info(f"🚮 Deleting extras {keys} for {self.uri}")
         r = self.update_extras({k: None for k in keys})
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         self.refresh()
         return r
 

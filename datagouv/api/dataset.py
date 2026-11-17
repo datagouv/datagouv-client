@@ -1,12 +1,16 @@
 import logging
 import warnings
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
+from typing import ClassVar
 
-from datagouv.api.client import Client
+from datagouv.api.client import DEFAULT_CLIENT, Client
 from datagouv.api.resource import Resource, ResourceCreator
 from datagouv.utils.base_object import BaseObject, Creator, assert_auth
+from datagouv.utils.errors import DatagouvAPIError
 from datagouv.utils.retry import simple_connection_retry
+
+logger = logging.getLogger(__name__)
 
 _valid_resources_sort_attr = {
     "created_at",
@@ -20,7 +24,7 @@ _valid_resources_sort_attr = {
 
 
 class Dataset(BaseObject, ResourceCreator):
-    _attributes = [
+    _attributes: ClassVar[list[str]] = [
         "archived",
         "badges",
         "contact_points",
@@ -49,7 +53,7 @@ class Dataset(BaseObject, ResourceCreator):
         self,
         id: str,
         fetch: bool = True,
-        _client: Client = Client(),
+        _client: Client = DEFAULT_CLIENT,
         _from_response: dict | None = None,
     ):
         BaseObject.__init__(self, id, _client)
@@ -94,8 +98,10 @@ class Dataset(BaseObject, ResourceCreator):
         )
 
     def download_resources(
-        self, folder: Path | str | None = None, resources_types: list[str] = ["main"]
+        self, folder: Path | str | None = None, resources_types: list[str] | None = None
     ):
+        if resources_types is None:
+            resources_types = ["main"]
         for res in self.resources:
             if res.type in resources_types:
                 if folder is not None:
@@ -106,7 +112,7 @@ class Dataset(BaseObject, ResourceCreator):
                 else:
                     path = None
                 if self._client.verbose:
-                    logging.info(f"Downloading {res.url}")
+                    logger.info(f"Downloading {res.url}")
                 res.download(path=path)
 
     def sort_resources(
@@ -144,7 +150,7 @@ class Dataset(BaseObject, ResourceCreator):
             raise ValueError("`by` or `sort_function` argument must be specified")
         if len(sorted_resources) != len(self.resources):
             raise ValueError("The sorted list has a different number of elements, aborting")
-        if len(sorted_resources) != len(set(r.id for r in sorted_resources)):
+        if len(sorted_resources) != len({r.id for r in sorted_resources}):
             raise ValueError("An id has been duplicated in the sorting process, aborting")
         r = self._client.session.put(
             self.uri + "resources/",
@@ -153,7 +159,7 @@ class Dataset(BaseObject, ResourceCreator):
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
 
 
 class DatasetCreator(Creator):
@@ -161,11 +167,11 @@ class DatasetCreator(Creator):
     def create(self, payload: dict) -> Dataset:
         assert_auth(self._client)
         if self._client.verbose:
-            logging.info(f"Creating dataset '{payload['title']}'")
+            logger.info(f"Creating dataset '{payload['title']}'")
         r = self._client.session.post(f"{self._client.base_url}/api/1/datasets/", json=payload)
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         metadata = r.json()
         return Dataset(metadata["id"], _client=self._client, _from_response=metadata)
