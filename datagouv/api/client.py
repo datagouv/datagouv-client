@@ -1,7 +1,10 @@
+from collections.abc import Iterator
 from importlib.metadata import version
-from typing import TYPE_CHECKING, Iterator
+from typing import TYPE_CHECKING, ClassVar
 
 import niquests
+
+from datagouv.utils.errors import DatagouvAPIError
 
 if TYPE_CHECKING:
     from datagouv import Dataset, Organization, Resource, Topic
@@ -10,7 +13,7 @@ PYTHON_USER_AGENT = {"User-Agent": f"datagouv-python/{version('datagouv_client')
 
 
 class Client:
-    _envs = {
+    _envs: ClassVar[dict[str, str]] = {
         "www": "www",
         "prod": "www",
         "demo": "demo",
@@ -138,7 +141,7 @@ class Client:
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         for elem in r.json()["data"]:
             yield cast_elem(elem, self, cast_as)
         next_url = get_link_next_page(r.json(), next_page)
@@ -147,7 +150,11 @@ class Client:
             try:
                 r.raise_for_status()
             except Exception as e:
-                raise Exception(r.text) from e
+                raise DatagouvAPIError(r.text) from e
             for data in r.json()["data"]:
                 yield cast_elem(data, self, cast_as)
             next_url = get_link_next_page(r.json(), next_page)
+
+
+# used by objects instantiated without an explicit client
+DEFAULT_CLIENT = Client()

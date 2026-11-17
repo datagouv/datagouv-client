@@ -40,7 +40,8 @@ If you only want to retrieve existing objects (aka you don't want to modify them
 ```python
 from datagouv import Dataset, Resource, Organization
 
-dataset = Dataset("5d13a8b6634f41070a43dff3")  # you can find a dataset's id in the `Informations` tab of its landing page
+# you can find a dataset's id in the `Informations` tab of its landing page
+dataset = Dataset("5d13a8b6634f41070a43dff3")
 
 # you can now access a bunch of info about the dataset
 print(dataset.title)
@@ -58,7 +59,8 @@ for res in dataset.resources:
     print(res)  # this displays all the attributes of the resource as a dict
 
 # if you are only interested in a specific resource
-resource = Resource("f868cca6-8da1-4369-a78d-47463f19a9a3")  # you can find a resource's id in its `Métadonnées` tab
+# you can find a resource's id in its `Métadonnées` tab
+resource = Resource("f868cca6-8da1-4369-a78d-47463f19a9a3")
 print(resource)
 
 # if the resource contains tabular data that has been APIfied (see https://www.data.gouv.fr/dataservices/673b0e6774a23d9eac2af8ce for more info), it also has:
@@ -93,13 +95,14 @@ d.download_resources(
 )
 
 
-organization = Organization("646b7187b50b2a93b1ae3d45")  # you can find an organization's id in the `Informations` tab of its landing page, in "Informations techniques"
+# you can find an organization's id in the `Informations` tab of its landing page, in "Informations techniques"
+organization = Organization("646b7187b50b2a93b1ae3d45")
 # you can loop through the organization's datasets, which are Dataset instances
 for dat in organization.datasets:
     print(f"{dat.title} has {len(dat.resources)} resources")
 ```
 
-> **Note:** If you encounter errors during API calls, the client will raise appropriate exceptions (e.g., `PermissionError` for authentication issues, `niquests.RequestException` for API errors).
+> **Note:** If you encounter errors during API calls, the client will raise appropriate exceptions (e.g., `PermissionError` for authentication issues, `DatagouvAPIError` for errors returned by the API, which can be imported with `from datagouv import DatagouvAPIError`).
 
 > **Note:** If you want to get objects from demo or dev, you must use a client:
 ```python
@@ -168,7 +171,8 @@ Once your client is set up, you can instantiate datasets and resources from it. 
 dataset = client.dataset("5d13a8b6634f41070a43dff3")
 # this is also a Dataset instance, with all the same attributes as above, but since you're authenticated, you have access to new methods
 
-dataset.update({"title": "A brand new title"})  # update the dataset online with the payload you give, and also update the attributes of the object
+# update the dataset online with the payload you give, and also update the attributes of the object
+dataset.update({"title": "A brand new title"})
 print(dataset.title)  # -> "A brand new title"
 dataset.delete()  # delete the dataset, use with caution!
 
@@ -187,7 +191,8 @@ for idx, res in enumerate(dataset.resources):
 
 # it is also possible to sort a dataset's resources
 # either with a specific Resource field and order, or with a custom sorting function that takes and returns a list of Resource objects
-dataset.sort_resources(by="title.asc")  # the expected syntax is <field>.<order> (order being 'asc' or 'desc')
+# the expected syntax is <field>.<order> (order being 'asc' or 'desc')
+dataset.sort_resources(by="title.asc")
 ```
 
 With an authenticated client, you are also allowed to create datasets and resources on the environment you specified:
@@ -264,7 +269,8 @@ for obj in client.get_all_from_api_query(
     mask="data{id,title,resources{id,title}}",  # you can apply a mask to retrieve only specific fields of the objects
     cast_as=Dataset,  # you can get the results as objects to manipulate them more easily
 ):
-    print(f"Dataset {obj['title']} has {len(obj['resources'])} resources")  # if cast_as is not used, otherwise `obj.id` and `obj.resources`
+    # if cast_as is not used, otherwise `obj.id` and `obj.resources`
+    print(f"Dataset {obj['title']} has {len(obj['resources'])} resources")
 ```
 
 You can also check if resources have been updated more recently than others:

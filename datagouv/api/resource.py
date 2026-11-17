@@ -1,14 +1,18 @@
 import logging
 import re
+from collections.abc import Iterator
 from io import BytesIO
 from pathlib import Path
-from typing import Iterator
+from typing import ClassVar
 
 import niquests
 
-from datagouv.api.client import Client
+from datagouv.api.client import DEFAULT_CLIENT, Client
 from datagouv.utils.base_object import BaseObject, Creator, assert_auth
+from datagouv.utils.errors import DatagouvAPIError
 from datagouv.utils.retry import simple_connection_retry
+
+logger = logging.getLogger(__name__)
 
 OPERATORS = {
     "sort": "sort",
@@ -32,7 +36,7 @@ class Resource(BaseObject):
     _dataset = None
     _profile = None
     _columns = None
-    _attributes = [
+    _attributes: ClassVar[list[str]] = [
         "checksum",
         "created_at",
         "description",
@@ -58,7 +62,7 @@ class Resource(BaseObject):
         is_communautary: bool = False,
         fetch: bool = True,
         _from_response: dict | None = None,
-        _client: Client = Client(),
+        _client: Client = DEFAULT_CLIENT,
     ):
         super().__init__(id, _client)
         if not dataset_id:
@@ -97,13 +101,14 @@ class Resource(BaseObject):
                     "To modify the URL it points to, please use the `url` field in the payload."
                 )
             if self._client.verbose:
-                logging.info(f"⬆️ Posting file {file_to_upload} into {self.uri}")
+                logger.info(f"⬆️ Posting file {file_to_upload} into {self.uri}")
             try:
-                r = self._client.session.post(
-                    f"{self.uri}upload/",
-                    files={"file": open(file_to_upload, "rb")},
-                    timeout=timeout,
-                )
+                with open(file_to_upload, "rb") as f:
+                    r = self._client.session.post(
+                        f"{self.uri}upload/",
+                        files={"file": f},
+                        timeout=timeout,
+                    )
             except niquests.Timeout as e:
                 raise TimeoutError(
                     "The upload reached the timeout, consider setting it higher like:"
@@ -112,7 +117,7 @@ class Resource(BaseObject):
             try:
                 r.raise_for_status()
             except Exception as e:
-                raise Exception(r.text) from e
+                raise DatagouvAPIError(r.text) from e
         return super().update(payload)
 
     @property
@@ -161,9 +166,8 @@ class Resource(BaseObject):
             try:
                 r.raise_for_status()
             except Exception as e:
-                raise Exception(r.text) from e
-            for chunk in r.iter_content(chunk_size=chunk_size):
-                yield chunk
+                raise DatagouvAPIError(r.text) from e
+            yield from r.iter_content(chunk_size=chunk_size)
 
     def download_buffer(
         self,
@@ -227,8 +231,7 @@ class Resource(BaseObject):
         # Ensure parent directory exists
         path.parent.mkdir(parents=True, exist_ok=True)
         with open(path, "wb") as f:
-            for chunk in self._iter_download(chunk_size):
-                f.write(chunk)
+            f.writelines(self._iter_download(chunk_size))
         return path
 
     def get_api2_metadata(self) -> dict:
@@ -236,7 +239,7 @@ class Resource(BaseObject):
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         return r.json()
 
     @simple_connection_retry
@@ -323,7 +326,7 @@ class ResourceCreator(Creator):
         else:
             url = f"{self._client.base_url}/api/1/datasets/{dataset_id}/resources/"
         if self._client.verbose:
-            logging.info(f"🆕 Creating '{payload['title']}' for {url}")
+            logger.info(f"🆕 Creating '{payload['title']}' for {url}")
         if "filetype" not in payload:
             payload.update({"filetype": "remote"})
         if "type" not in payload:
@@ -332,7 +335,7 @@ class ResourceCreator(Creator):
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         metadata = r.json()
         return Resource(
             metadata["id"], dataset_id=dataset_id, _client=self._client, _from_response=metadata
@@ -361,12 +364,13 @@ class ResourceCreator(Creator):
         if is_communautary:
             url += "community/"
         if self._client.verbose:
-            logging.info(f"🆕 Creating '{payload['title']}' for {file_to_upload}")
-        r = self._client.session.post(url, files={"file": open(file_to_upload, "rb")})
+            logger.info(f"🆕 Creating '{payload['title']}' for {file_to_upload}")
+        with open(file_to_upload, "rb") as f:
+            r = self._client.session.post(url, files={"file": f})
         try:
             r.raise_for_status()
         except Exception as e:
-            raise Exception(r.text) from e
+            raise DatagouvAPIError(r.text) from e
         metadata = r.json()
         resource_id = metadata["id"]
         r = Resource(

@@ -115,8 +115,8 @@ def test_topic_update(topic_api_call, niquests_mock):
     response = topic.update(payload)
 
     assert response.status_code == 200
-    for attr in payload.keys():
-        assert getattr(topic, attr) == payload[attr]
+    for attr, value in payload.items():
+        assert getattr(topic, attr) == value
 
 
 def test_topic_delete(topic_api_call, niquests_mock):

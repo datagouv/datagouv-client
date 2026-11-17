@@ -123,8 +123,8 @@ def test_organization_update(organization_api_call, niquests_mock):
     response = organization.update(payload)
 
     assert response.status_code == 200
-    for attr in payload.keys():
-        assert getattr(organization, attr) == payload[attr]
+    for attr, value in payload.items():
+        assert getattr(organization, attr) == value
 
 
 def test_organization_delete(organization_api_call, niquests_mock):

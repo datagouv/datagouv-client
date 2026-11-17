@@ -140,8 +140,8 @@ def test_dataset_update(dataset_api_call, niquests_mock):
     response = dataset.update(payload)
 
     assert response.status_code == 200
-    for attr in payload.keys():
-        assert getattr(dataset, attr) == payload[attr]
+    for attr, value in payload.items():
+        assert getattr(dataset, attr) == value
 
 
 def test_dataset_delete(dataset_api_call, niquests_mock):
@@ -182,7 +182,7 @@ def test_sort_resources(kwarg, success, dataset_api_call):
     dataset = client.dataset(DATASET_ID)
 
     if not success:
-        with pytest.raises(Exception):
+        with pytest.raises((AssertionError, ValueError)):
             dataset.sort_resources(**kwarg)
         return
 

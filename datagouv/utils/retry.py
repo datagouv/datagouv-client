@@ -5,6 +5,8 @@ from tenacity import (
     wait_exponential,
 )
 
+_DEFAULT_WAIT = wait_exponential(multiplier=1, min=4, max=10)
+
 
 def log_retry_attempt(state):
     exception = state.outcome.exception()
@@ -17,7 +19,7 @@ def _simple_connection_retry(
     always_raise_exceptions=(PermissionError, ValueError),
     attempts=5,
     func=log_retry_attempt,
-    wait=wait_exponential(multiplier=1, min=4, max=10),
+    wait=_DEFAULT_WAIT,
     reraise=True,
     **kwargs,
 ):
